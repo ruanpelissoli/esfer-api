@@ -1,0 +1,52 @@
+version: '3.7'
+
+networks:
+    localdev:
+        name: localdev
+
+services:
+  web:
+    depends_on:
+      - "db"
+      - "redis"
+
+    networks:
+    - localdev
+     
+    links:
+      - "redis"
+
+    build:
+      context: ./
+      dockerfile: ./API/Esfer.API/Dockerfile
+    
+    ports:
+      - "8080:80"
+
+  db:
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "mypassword123!"
+    image: mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04
+    ports:
+        - "1401:1433"
+    
+    restart: always
+    healthcheck:
+        test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P mypassword123! -Q 'SELECT 1' || exit 1"]
+        interval: 10s
+        retries: 10
+        start_period: 10s
+        timeout: 3s
+    
+    networks:
+      - localdev
+
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+        - "6379:6379"
+    
+    networks:
+      - localdev
