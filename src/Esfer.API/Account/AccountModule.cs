@@ -1,8 +1,10 @@
 ﻿using Carter;
+using Esfer.API.Account.Application.Commands.ChangePassword;
 using Esfer.API.Account.Application.Commands.ConfirmAccountEmail;
 using Esfer.API.Account.Application.Commands.CreateAccount;
 using Esfer.API.Account.Application.Commands.Login;
 using Esfer.API.Account.Application.Commands.Logout;
+using Esfer.API.Account.Application.Commands.ResetPassword;
 using Esfer.API.Account.Application.Events.SendConfirmationAccountEmail;
 using Esfer.API.Account.Application.Queries.GetAccountProfile;
 using Esfer.API.Extensions;
@@ -56,6 +58,28 @@ public class AccountModule : CarterModule
             IPublisher publisher) =>
         {
             await publisher.Publish(new SendConfirmationAccountEmailNotification(email));
+
+            return Results.Ok();
+        });
+
+        app.MapPost("/reset-password", async (
+            [FromBody] ResetPasswordCommand command,
+            ISender sender) =>
+        {
+            await sender.Send(command);
+
+            return Results.Ok();
+        });
+
+        app.MapPatch("/change-password", async (
+            [FromQuery] Guid accountId,
+            [FromQuery] string token,
+            [FromBody] string newPassword,
+            ISender sender) =>
+        {
+            var command = new ChangePasswordCommand(accountId, token, newPassword);
+
+            await sender.Send(command);
 
             return Results.Ok();
         });

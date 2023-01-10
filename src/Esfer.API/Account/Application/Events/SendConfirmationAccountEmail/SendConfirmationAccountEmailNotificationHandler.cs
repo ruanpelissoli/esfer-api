@@ -32,7 +32,7 @@ internal sealed class SendConfirmationAccountEmailNotificationHandler
 
         if (account == null)
         {
-            _logger.LogError("Account not found for email {0}", notification.Email);
+            _logger.LogError("Account not found for email {Email}", notification.Email);
             return;
         }
 

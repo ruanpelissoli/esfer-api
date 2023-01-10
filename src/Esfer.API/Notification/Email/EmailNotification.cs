@@ -7,8 +7,8 @@ namespace Esfer.API.Notification.Email;
 
 public interface IEmailNotification
 {
-    Task SendAsync(string to, string subject);
     Task SendEmailConfirmationAsync(string to, string userName, string confirmationLink);
+    Task SendResetEmailAsync(string to, string resetPasswordLink);
 }
 
 public class EmailNotification : IEmailNotification
@@ -27,17 +27,14 @@ public class EmailNotification : IEmailNotification
         _logger = logger;
     }
 
-    public Task SendAsync(string to, string subject)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task SendEmailConfirmationAsync(string to, string userName, string confirmationLink)
     {
-        _logger.LogInformation("Starting {0} to user {1}", nameof(SendEmailConfirmationAsync), to);
+        _logger.LogInformation("Starting {SendEmailConfirmationAsync} to user {to}", nameof(SendEmailConfirmationAsync), to);
 
-        StringBuilder emailBodyBuilder = new(File.ReadAllText(
-            Path.Combine(Directory.GetCurrentDirectory(), "Notification\\Email\\Templates\\" + "welcome.html"), Encoding.UTF8));
+        var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Notification\\Email\\Templates\\" + "welcome.html");
+        var htmlBodyString = File.ReadAllText(templatePath, Encoding.UTF8);
+
+        StringBuilder emailBodyBuilder = new(htmlBodyString);
 
         emailBodyBuilder.Replace("[CONFIRMATION_URL]", confirmationLink);
         emailBodyBuilder.Replace("[EMAIL_ADDRESS]", _sendGridConfiguration.FromEmail);
@@ -53,7 +50,34 @@ public class EmailNotification : IEmailNotification
 
         var response = await _sendGridClient.SendEmailAsync(message);
 
-        _logger.LogInformation("Finished {0}, StatusCode: {1}",
+        _logger.LogInformation("Finished {SendEmailConfirmationAsync}, StatusCode: {StatusCode}",
             nameof(SendEmailConfirmationAsync), response.StatusCode);
+    }
+
+    public async Task SendResetEmailAsync(string to, string resetPasswordLink)
+    {
+        _logger.LogInformation("Starting {SendResetEmailAsync} to user {to}", nameof(SendResetEmailAsync), to);
+
+        var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Notification\\Email\\Templates\\" + "reset-email.html");
+        var htmlBodyString = File.ReadAllText(templatePath, Encoding.UTF8);
+
+        StringBuilder emailBodyBuilder = new(htmlBodyString);
+
+        emailBodyBuilder.Replace("[RESET_URL]", resetPasswordLink);
+        emailBodyBuilder.Replace("[EMAIL_ADDRESS]", _sendGridConfiguration.FromEmail);
+        emailBodyBuilder.Replace("[YOUR_NAME]", _sendGridConfiguration.FromName);
+
+        var message = new SendGridMessage()
+        {
+            From = new EmailAddress(_sendGridConfiguration.FromEmail, _sendGridConfiguration.FromName),
+            Subject = $"Reset Password - Esfer",
+            HtmlContent = emailBodyBuilder.ToString()
+        };
+        message.AddTo(new EmailAddress(to));
+
+        var response = await _sendGridClient.SendEmailAsync(message);
+
+        _logger.LogInformation("Finished {SendResetEmailAsync}, StatusCode: {StatusCode}",
+            nameof(SendResetEmailAsync), response.StatusCode);
     }
 }
