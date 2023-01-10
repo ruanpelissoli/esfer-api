@@ -1,7 +1,10 @@
 ﻿using Esfer.API.Account.Domain.Entities;
+using Esfer.API.Account.Infrastructure.CurrentAuthorizedAccount;
 using Esfer.API.Account.Infrastructure.Token;
 using Esfer.API.Shared.Database;
 using Esfer.API.Shared.DependencyInjection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace Esfer.API.Account;
@@ -11,6 +14,10 @@ public class AccountInstaller : IServiceInstaller
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<ITokenService, TokenService>();
+
+        services.AddScoped<CurrentLoggedAccount>();
+        services.AddScoped<IClaimsTransformation, ClaimsTransformation>();
+        services.AddScoped<IAuthorizationHandler, AuthorizationRequirementsHandler>();
 
         services.AddIdentity<UserAccount, UserRole>(options =>
         {

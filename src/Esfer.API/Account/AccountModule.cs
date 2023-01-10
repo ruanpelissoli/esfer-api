@@ -84,17 +84,13 @@ public class AccountModule : CarterModule
             return Results.Ok();
         });
 
-        app.MapGet("/me", async (HttpContext httpContext, ISender sender) =>
+        app.MapGet("/me", async (
+            ISender sender) =>
         {
-            var accountId = httpContext.GetCurrentAccountId();
-
-            if (accountId == Guid.Empty)
-                return Results.Unauthorized();
-
-            var result = await sender.Send(new GetAccountProfileQuery(accountId));
+            var result = await sender.Send(new GetAccountProfileQuery());
 
             return Results.Ok(result.Value);
         })
-        .RequireAuthorization();
+        .RequiredLoggedAccount();
     }
 }
