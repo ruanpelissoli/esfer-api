@@ -1,6 +1,6 @@
 ﻿using Esfer.API.Shared.Mediator;
 
-namespace Esfer.API.Account.Application.CreateAccount;
+namespace Esfer.API.Account.Application.Commands.CreateAccount;
 
 public sealed record CreateAccountCommand(
     string Username,

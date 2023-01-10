@@ -1,27 +1,32 @@
-﻿using Esfer.API.Account.Domain.Entities;
+﻿using Esfer.API.Account.Application.Events.SendConfirmationAccountEmail;
+using Esfer.API.Account.Domain.Entities;
 using Esfer.API.Shared.Domain;
 using Esfer.API.Shared.Mediator;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 
-namespace Esfer.API.Account.Application.CreateAccount;
+namespace Esfer.API.Account.Application.Commands.CreateAccount;
 
 internal sealed class CreateAccountCommandHandler
     : ICommandHandler<CreateAccountCommand>
 {
     readonly UserManager<UserAccount> _userManager;
+    readonly IPublisher _publisher;
     readonly ILogger<CreateAccountCommandHandler> _logger;
 
     public CreateAccountCommandHandler(
         UserManager<UserAccount> userManager,
+        IPublisher publisher,
         ILogger<CreateAccountCommandHandler> logger)
     {
         _userManager = userManager;
+        _publisher = publisher;
         _logger = logger;
     }
 
     public async Task<Result> Handle(CreateAccountCommand command, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting account creation for {0} and {1}",
+        _logger.LogInformation("Starting account creation for {Username} and {Email}",
             command.Username, command.Email);
 
         var result = await _userManager.CreateAsync(
@@ -30,7 +35,7 @@ internal sealed class CreateAccountCommandHandler
 
         if (!result.Succeeded)
         {
-            _logger.LogInformation("Account create failed for {0} and {1}",
+            _logger.LogInformation("Account create failed for {Username} and {Email}",
             command.Username, command.Email);
 
             return Result.Failure(new Error(
@@ -38,8 +43,8 @@ internal sealed class CreateAccountCommandHandler
                 string.Join(",", result.Errors.Select(s => s.Description))));
         }
 
-        // TODO: SendEmails
-        // _eventSender.SendAndForget(new SendAccountConfimationEmailEvent(request.Email), cancellationToken);
+        await _publisher.Publish(new SendConfirmationAccountEmailNotification(command.Email),
+            cancellationToken);
 
         return Result.Success();
     }

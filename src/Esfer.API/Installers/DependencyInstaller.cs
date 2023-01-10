@@ -1,7 +1,7 @@
 ﻿using Esfer.API.Shared.DependencyInjection;
 using System.Reflection;
 
-namespace Esfer.API;
+namespace Esfer.API.Installers;
 
 public static class DependencyInstaller
 {
