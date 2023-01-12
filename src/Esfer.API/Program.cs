@@ -1,4 +1,5 @@
 using Carter;
+using Esfer.API.Extensions;
 using Esfer.API.Installers;
 using Esfer.API.Shared.Database;
 using MediatR;
@@ -15,6 +16,8 @@ builder.Services.AddMemoryCache();
 builder.Services.InstallServices(
     builder.Configuration,
     typeof(Program).Assembly);
+
+builder.Services.AddRateLimiting();
 
 var connectionString = builder.Configuration.GetConnectionString("Esfer");
 

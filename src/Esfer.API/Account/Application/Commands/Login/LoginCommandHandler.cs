@@ -10,18 +10,15 @@ internal sealed class LoginCommandHandler
     : ICommandHandler<LoginCommand, LoginResponse>
 {
     readonly UserManager<UserAccount> _userManager;
-    readonly SignInManager<UserAccount> _signInManager;
     readonly ITokenService _tokenService;
     readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         UserManager<UserAccount> userManager,
-        SignInManager<UserAccount> signInManager,
         ITokenService tokenService,
         ILogger<LoginCommandHandler> logger)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _tokenService = tokenService;
         _logger = logger;
     }
@@ -42,8 +39,6 @@ internal sealed class LoginCommandHandler
             return Result.Failure<LoginResponse>(new Error(
                 "Account.ConfirmEmail",
                 "Please confirm your email"));
-
-        await _signInManager.SignInAsync(account, true);
 
         var token = _tokenService.GenerateToken(request.UserName);
 

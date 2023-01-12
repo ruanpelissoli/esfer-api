@@ -3,7 +3,6 @@ using Esfer.API.Account.Application.Commands.ChangePassword;
 using Esfer.API.Account.Application.Commands.ConfirmAccountEmail;
 using Esfer.API.Account.Application.Commands.CreateAccount;
 using Esfer.API.Account.Application.Commands.Login;
-using Esfer.API.Account.Application.Commands.Logout;
 using Esfer.API.Account.Application.Commands.ResetPassword;
 using Esfer.API.Account.Application.Events.SendConfirmationAccountEmail;
 using Esfer.API.Account.Application.Queries.GetAccountProfile;
@@ -34,13 +33,6 @@ public class AccountModule : CarterModule
             var result = await sender.Send(command);
 
             return Results.Ok(result.Value);
-        });
-
-        app.MapPost("/logout", async (ISender sender) =>
-        {
-            await sender.Send(new LogoutCommand());
-
-            return Results.Ok();
         });
 
         app.MapGet("/confirm-email", async (
