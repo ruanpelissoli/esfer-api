@@ -1,4 +1,4 @@
-﻿using Esfer.API.Shared.DependencyInjection;
+﻿using Esfer.API.Domains.Shared.DependencyInjection;
 using System.Reflection;
 
 namespace Esfer.API.Installers;

@@ -1,4 +1,4 @@
-﻿using Esfer.API.Account.Infrastructure.CurrentAuthorizedAccount;
+﻿using Esfer.API.Domains.Account.Infrastructure.CurrentAuthorizedAccount;
 
 namespace Esfer.API.Extensions;
 
