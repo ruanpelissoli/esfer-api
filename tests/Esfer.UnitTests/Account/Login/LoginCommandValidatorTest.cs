@@ -9,10 +9,10 @@ public class LoginCommandValidatorTest
         var validator = new LoginCommandValidator();
         var command = new LoginCommand("", "");
 
-        var result = validator.Validate(command);
+        var result = validator.TestValidate(command);
 
-        result.Errors.Any(a => a.PropertyName == nameof(LoginCommand.UserName));
-        result.Errors.Any(a => a.PropertyName == nameof(LoginCommand.Password));
+        result.ShouldHaveValidationErrorFor(f => f.UserName);
+        result.ShouldHaveValidationErrorFor(f => f.Password);
     }
 
     [Fact]
@@ -21,8 +21,8 @@ public class LoginCommandValidatorTest
         var validator = new LoginCommandValidator();
         var command = new LoginCommand("username", "password");
 
-        var result = validator.Validate(command);
+        var result = validator.TestValidate(command);
 
-        result.IsValid.Should().BeTrue();
+        result.ShouldNotHaveAnyValidationErrors();
     }
 }

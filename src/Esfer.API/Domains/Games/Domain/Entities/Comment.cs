@@ -8,7 +8,7 @@ public class Comment : Entity
     public Guid AccountId { get; set; }
     public string Value { get; set; }
     public int? ReplyingTo { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public Comment()
     {

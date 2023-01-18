@@ -1,4 +1,5 @@
 ﻿using Esfer.API.Domains.Account.Application.Events.SendConfirmationAccountEmail;
+using Esfer.API.Domains.Account.Domain.Errors;
 using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Shared.Domain;
 using Esfer.API.Domains.Shared.Mediator;
@@ -6,7 +7,7 @@ using MediatR;
 
 namespace Esfer.API.Domains.Account.Application.Commands.CreateAccount;
 
-internal sealed class CreateAccountCommandHandler
+public sealed class CreateAccountCommandHandler
     : ICommandHandler<CreateAccountCommand>
 {
     readonly IAccountRepository _accountRepository;
@@ -26,21 +27,19 @@ internal sealed class CreateAccountCommandHandler
     public async Task<Result> Handle(CreateAccountCommand command, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting account creation for {Username} and {Email}",
-            command.Username, command.Email);
+            command.UserName, command.Email);
 
         var result = await _accountRepository.CreateAsync(
-            command.Username,
+            command.UserName,
             command.Email,
             command.Password);
 
         if (!result.Succeeded)
         {
             _logger.LogInformation("Account create failed for {Username} and {Email}",
-            command.Username, command.Email);
+            command.UserName, command.Email);
 
-            return Result.Failure(new Error(
-                "Account.CreateFailed",
-                string.Join(",", result.Errors.Select(s => s.Description))));
+            return Result.Failure(AccountErrors.CreateCreationFailed(result.Errors));
         }
 
         await _publisher.Publish(new SendConfirmationAccountEmailNotification(command.Email),

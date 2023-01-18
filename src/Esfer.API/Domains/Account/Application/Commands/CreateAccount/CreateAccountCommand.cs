@@ -3,6 +3,6 @@
 namespace Esfer.API.Domains.Account.Application.Commands.CreateAccount;
 
 public sealed record CreateAccountCommand(
-    string Username,
+    string UserName,
     string Password,
     string Email) : ICommand;

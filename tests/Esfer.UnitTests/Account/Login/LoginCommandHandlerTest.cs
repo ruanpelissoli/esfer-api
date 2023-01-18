@@ -108,7 +108,7 @@ public class LoginCommandHandlerTest
     {
         var command = GenerateLoginCommandFake();
         var token = "xyz123!@#";
-        UserAccount account = new(command.UserName, command.Password);
+        UserAccount account = new(command.UserName, It.IsAny<string>());
 
         _accountRepositoryMock.Setup(s => s.FindByNameAsync(command.UserName))
             .ReturnsAsync(account);
