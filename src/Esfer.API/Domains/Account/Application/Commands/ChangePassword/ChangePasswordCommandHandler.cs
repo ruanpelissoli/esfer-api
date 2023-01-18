@@ -1,18 +1,19 @@
-﻿using Esfer.API.Domains.Account.Domain.Entities;
+﻿using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Shared.Domain;
 using Esfer.API.Domains.Shared.Mediator;
-using Microsoft.AspNetCore.Identity;
 
 namespace Esfer.API.Domains.Account.Application.Commands.ChangePassword;
 
 internal sealed class ChangePasswordCommandHandler : ICommandHandler<ChangePasswordCommand>
 {
-    readonly UserManager<UserAccount> _userManager;
+    readonly IAccountRepository _accountRepository;
     readonly ILogger<ChangePasswordCommandHandler> _logger;
 
-    public ChangePasswordCommandHandler(UserManager<UserAccount> userManager, ILogger<ChangePasswordCommandHandler> logger)
+    public ChangePasswordCommandHandler(
+        IAccountRepository accountRepository,
+        ILogger<ChangePasswordCommandHandler> logger)
     {
-        _userManager = userManager;
+        _accountRepository = accountRepository;
         _logger = logger;
     }
 
@@ -20,14 +21,14 @@ internal sealed class ChangePasswordCommandHandler : ICommandHandler<ChangePassw
     {
         _logger.LogInformation("Trying to change password for account {AccountId}", command.AccountId);
 
-        var account = await _userManager.FindByIdAsync(command.AccountId.ToString());
+        var account = await _accountRepository.FindByIdAsync(command.AccountId);
 
         if (account == null)
             return Result.Failure(new Error("" +
                 "Account.NotFound",
                 "Account not found"));
 
-        var result = await _userManager.ResetPasswordAsync(account, command.Token, command.NewPassword);
+        var result = await _accountRepository.ResetPasswordAsync(account, command.Token, command.NewPassword);
 
         if (!result.Succeeded)
             return Result.Failure(new Error("" +

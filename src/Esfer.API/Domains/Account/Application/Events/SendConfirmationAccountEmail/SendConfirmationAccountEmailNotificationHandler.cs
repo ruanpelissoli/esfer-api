@@ -1,7 +1,6 @@
-﻿using Esfer.API.Domains.Account.Domain.Entities;
+﻿using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Notification.Email;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using System.Web;
 
 namespace Esfer.API.Domains.Account.Application.Events.SendConfirmationAccountEmail;
@@ -9,18 +8,18 @@ namespace Esfer.API.Domains.Account.Application.Events.SendConfirmationAccountEm
 internal sealed class SendConfirmationAccountEmailNotificationHandler
     : INotificationHandler<SendConfirmationAccountEmailNotification>
 {
-    readonly UserManager<UserAccount> _userManager;
+    readonly IAccountRepository _accountRepository;
     readonly IEmailNotification _emailNotification;
     readonly IConfiguration _configuration;
     readonly ILogger<SendConfirmationAccountEmailNotificationHandler> _logger;
 
     public SendConfirmationAccountEmailNotificationHandler(
-        UserManager<UserAccount> userManager,
+        IAccountRepository accountRepository,
         IEmailNotification emailNotification,
         IConfiguration configuration,
         ILogger<SendConfirmationAccountEmailNotificationHandler> logger)
     {
-        _userManager = userManager;
+        _accountRepository = accountRepository;
         _emailNotification = emailNotification;
         _configuration = configuration;
         _logger = logger;
@@ -28,7 +27,7 @@ internal sealed class SendConfirmationAccountEmailNotificationHandler
 
     public async Task Handle(SendConfirmationAccountEmailNotification notification, CancellationToken cancellationToken)
     {
-        var account = await _userManager.FindByEmailAsync(notification.Email);
+        var account = await _accountRepository.FindByEmailAsync(notification.Email);
 
         if (account == null)
         {
@@ -36,7 +35,7 @@ internal sealed class SendConfirmationAccountEmailNotificationHandler
             return;
         }
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(account);
+        var token = await _accountRepository.GenerateEmailConfirmationTokenAsync(account);
 
         var encodedToken = HttpUtility.UrlEncode(token);
 

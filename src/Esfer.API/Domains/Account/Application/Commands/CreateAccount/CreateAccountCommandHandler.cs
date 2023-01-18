@@ -1,25 +1,24 @@
 ﻿using Esfer.API.Domains.Account.Application.Events.SendConfirmationAccountEmail;
-using Esfer.API.Domains.Account.Domain.Entities;
+using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Shared.Domain;
 using Esfer.API.Domains.Shared.Mediator;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 
 namespace Esfer.API.Domains.Account.Application.Commands.CreateAccount;
 
 internal sealed class CreateAccountCommandHandler
     : ICommandHandler<CreateAccountCommand>
 {
-    readonly UserManager<UserAccount> _userManager;
+    readonly IAccountRepository _accountRepository;
     readonly IPublisher _publisher;
     readonly ILogger<CreateAccountCommandHandler> _logger;
 
     public CreateAccountCommandHandler(
-        UserManager<UserAccount> userManager,
+        IAccountRepository accountRepository,
         IPublisher publisher,
         ILogger<CreateAccountCommandHandler> logger)
     {
-        _userManager = userManager;
+        _accountRepository = accountRepository;
         _publisher = publisher;
         _logger = logger;
     }
@@ -29,9 +28,10 @@ internal sealed class CreateAccountCommandHandler
         _logger.LogInformation("Starting account creation for {Username} and {Email}",
             command.Username, command.Email);
 
-        var result = await _userManager.CreateAsync(
-           new(command.Username, command.Email),
-           command.Password);
+        var result = await _accountRepository.CreateAsync(
+            command.Username,
+            command.Email,
+            command.Password);
 
         if (!result.Succeeded)
         {

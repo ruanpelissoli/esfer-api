@@ -1,24 +1,23 @@
-﻿using Esfer.API.Domains.Account.Domain.Entities;
+﻿using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Account.Infrastructure.Token;
 using Esfer.API.Domains.Shared.Domain;
 using Esfer.API.Domains.Shared.Mediator;
-using Microsoft.AspNetCore.Identity;
 
 namespace Esfer.API.Domains.Account.Application.Commands.Login;
 
 internal sealed class LoginCommandHandler
     : ICommandHandler<LoginCommand, LoginResponse>
 {
-    readonly UserManager<UserAccount> _userManager;
+    readonly IAccountRepository _accountRepository;
     readonly ITokenService _tokenService;
     readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
-        UserManager<UserAccount> userManager,
+        IAccountRepository accountRepository,
         ITokenService tokenService,
         ILogger<LoginCommandHandler> logger)
     {
-        _userManager = userManager;
+        _accountRepository = accountRepository;
         _tokenService = tokenService;
         _logger = logger;
     }
@@ -27,15 +26,15 @@ internal sealed class LoginCommandHandler
     {
         _logger.LogInformation("Starting login for user {UserName}", request.UserName);
 
-        var account = await _userManager.FindByNameAsync(request.UserName);
+        var account = await _accountRepository.FindByNameAsync(request.UserName);
 
         if (account is null
-            || !await _userManager.CheckPasswordAsync(account, request.Password))
+            || !await _accountRepository.CheckPasswordAsync(account, request.Password))
             return Result.Failure<LoginResponse>(new Error(
                 "Account.InvalidUsernameOrPassword",
                 "Invalid username or password"));
 
-        if (!await _userManager.IsEmailConfirmedAsync(account))
+        if (!await _accountRepository.IsEmailConfirmedAsync(account))
             return Result.Failure<LoginResponse>(new Error(
                 "Account.ConfirmEmail",
                 "Please confirm your email"));
