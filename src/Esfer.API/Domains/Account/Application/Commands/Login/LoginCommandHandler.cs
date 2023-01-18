@@ -1,11 +1,12 @@
-﻿using Esfer.API.Domains.Account.Domain.Repository;
+﻿using Esfer.API.Domains.Account.Domain.Errors;
+using Esfer.API.Domains.Account.Domain.Repository;
 using Esfer.API.Domains.Account.Infrastructure.Token;
 using Esfer.API.Domains.Shared.Domain;
 using Esfer.API.Domains.Shared.Mediator;
 
 namespace Esfer.API.Domains.Account.Application.Commands.Login;
 
-internal sealed class LoginCommandHandler
+public sealed class LoginCommandHandler
     : ICommandHandler<LoginCommand, LoginResponse>
 {
     readonly IAccountRepository _accountRepository;
@@ -22,24 +23,20 @@ internal sealed class LoginCommandHandler
         _logger = logger;
     }
 
-    public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<Result<LoginResponse>> Handle(LoginCommand command, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting login for user {UserName}", request.UserName);
+        _logger.LogInformation("Starting login for user {UserName}", command.UserName);
 
-        var account = await _accountRepository.FindByNameAsync(request.UserName);
+        var account = await _accountRepository.FindByNameAsync(command.UserName);
 
         if (account is null
-            || !await _accountRepository.CheckPasswordAsync(account, request.Password))
-            return Result.Failure<LoginResponse>(new Error(
-                "Account.InvalidUsernameOrPassword",
-                "Invalid username or password"));
+            || !await _accountRepository.CheckPasswordAsync(account, command.Password))
+            return Result.Failure<LoginResponse>(AccountErrors.InvalidUserNameOrPassword);
 
         if (!await _accountRepository.IsEmailConfirmedAsync(account))
-            return Result.Failure<LoginResponse>(new Error(
-                "Account.ConfirmEmail",
-                "Please confirm your email"));
+            return Result.Failure<LoginResponse>(AccountErrors.EmailNotConfirmed);
 
-        var token = _tokenService.GenerateToken(request.UserName);
+        var token = _tokenService.GenerateToken(command.UserName);
 
         return Result.Success(new LoginResponse(token));
     }
